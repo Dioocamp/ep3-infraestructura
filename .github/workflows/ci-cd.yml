@@ -1,0 +1,76 @@
+# ======================================================================
+#  Pipeline del repositorio de infraestructura  (EP3 - JVY0101)
+#
+#  Etapas:
+#   1. provision-cloud : crea/actualiza los servicios cloud (IaC):
+#                        cola SQS + Lambda notificador + trigger.
+#   2. deploy-swarm    : copia el docker-compose.yml al nodo manager
+#                        y ejecuta docker stack deploy.
+#
+#  Secrets requeridos (Settings > Secrets and variables > Actions):
+#    AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN,
+#    AWS_REGION, DOCKERHUB_USERNAME, DOCKERHUB_TOKEN,
+#    EC2_HOST, EC2_USER, EC2_SSH_KEY
+#
+#  NOTA AWS Academy: las 3 credenciales AWS rotan en cada sesion del
+#  Learner Lab; hay que actualizarlas en los secrets antes de ejecutar.
+# ======================================================================
+name: Provision cloud y despliegue del stack
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+
+  # --------------------------------------------------------------
+  # 1. Infraestructura como codigo: provision idempotente de los
+  #    servicios cloud que utiliza el sistema.
+  # --------------------------------------------------------------
+  provision-cloud:
+    name: Provisionar SQS + Lambda (IaC)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar credenciales AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Ejecutar provision idempotente (cola + funcion + trigger)
+        run: bash infra/provision.sh
+
+  # --------------------------------------------------------------
+  # 2. Despliegue del stack completo en el cluster Docker Swarm.
+  # --------------------------------------------------------------
+  deploy-swarm:
+    name: Desplegar stack en Docker Swarm
+    needs: provision-cloud
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Copiar docker-compose.yml al nodo manager
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: docker-compose.yml
+          target: ~/clinica/
+
+      - name: docker stack deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+            docker stack deploy -c ~/clinica/docker-compose.yml clinica --with-registry-auth
+            docker service ls

@@ -1,0 +1,7 @@
+# Credenciales y artefactos locales: nunca al repositorio
+*.zip
+salida.json
+.aws/
+credentials
+.env
+__pycache__/

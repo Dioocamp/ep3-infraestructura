@@ -1,0 +1,25 @@
+{
+  "Records": [
+    {
+      "messageId": "2b1e3c4d-5f6a-7b8c-9d0e-1f2a3b4c5d6e",
+      "receiptHandle": "AQEBexample==",
+      "body": "{\"idCita\":7,\"rutPaciente\":\"12345678-5\",\"nombrePaciente\":\"Ana Rojas\",\"fechaHora\":\"2026-08-01T09:00\",\"medicoId\":3,\"motivo\":\"Control cardiologico\"}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1753900000000",
+        "SenderId": "AIDAEXAMPLE",
+        "ApproximateFirstReceiveTimestamp": "1753900000100"
+      },
+      "messageAttributes": {
+        "eventType": {
+          "stringValue": "CITA_CREADA",
+          "dataType": "String"
+        }
+      },
+      "md5OfBody": "0e3f1e0d1c2b3a4d5e6f7a8b9c0d1e2f",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:us-east-1:123456789012:clinica-citas-queue",
+      "awsRegion": "us-east-1"
+    }
+  ]
+}
