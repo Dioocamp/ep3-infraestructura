@@ -224,6 +224,9 @@ En orden, sin saltarse ninguno:
 8. **Prepara las ventanas:** ver "Set de grabación" abajo.
 9. Docker Desktop local corriendo (para la escena 2).
 10. Audífonos con micrófono puestos, pieza en silencio.
+11. Trabajo individual: ensayar también la narración (guion-video.md es de
+    narrador único) — grabar demos primero, voz encima después reduce la
+    carga de hacer todo a la vez.
 
 **Set de grabación (ventanas abiertas antes de partir):**
 - V1: PowerShell local en `EP2-Microservicios\` (escena 2)

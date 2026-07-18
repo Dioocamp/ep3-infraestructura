@@ -52,7 +52,10 @@
 ## Entrega de la presentación (el video)
 
 - [ ] Grabar siguiendo `docs/guion-video.md` (3–8 min, objetivo 7:30).
-- [ ] Voces de **ambos** integrantes, claras y sin ruido de fondo.
+- [ ] Voz clara y sin ruido de fondo. ⚠ La pauta exige la voz de "los
+      estudiantes": si la evaluación quedó registrada en pareja, la otra
+      persona debe narrar al menos 2–3 bloques; si es entrega individual,
+      confirmarlo con el docente por escrito.
 - [ ] Exportar a mp4 y verlo completo una vez antes de subirlo.
 - [ ] Subir el archivo al AVA **y** enviarlo/compartirlo al correo del
       docente dentro del plazo.
