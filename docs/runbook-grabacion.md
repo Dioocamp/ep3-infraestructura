@@ -237,7 +237,7 @@ Entre los dos formarán el clúster que exige la evaluación.
    - Clic en **Create key pair** → se descarga `clinica-key.pem`.
    - 🚨 **Ese archivo es tu llave para entrar al servidor. NO lo borres.**
      Déjalo en `C:\Users\dinko\Downloads\clinica-key.pem`.
-7. **Network settings:** clic en **Edit** (a la derecha):
+8. **Network settings:** clic en **Edit** (a la derecha):
    - Security group name: borra lo que haya y escribe `clinica-sg`
    - Description: `clinica`
    - Ya hay una regla SSH (puerto 22). Déjala con Source: **Anywhere**
@@ -249,7 +249,7 @@ Entre los dos formarán el clúster que exige la evaluación.
    | Custom TCP | `8081` | Anywhere-IPv4 |
    | Custom TCP | `8082` | Anywhere-IPv4 |
 
-8. Botón naranja **Launch instance** → espera → **View all instances**.
+9. Botón naranja **Launch instance** → espera → **View all instances**.
 
 ### A4.3 Crear la segunda máquina (worker)
 
