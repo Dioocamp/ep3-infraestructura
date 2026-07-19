@@ -1,5 +1,16 @@
 # API Gateway — configuración paso a paso (IE12)
 
+> ⚡ **Forma rápida y reproducible:** en vez de seguir estos pasos a mano en
+> la consola, ejecuta en el nodo manager:
+> ```bash
+> cd ~/ep3-infraestructura && git pull
+> bash infra/crear-api-gateway.sh
+> ```
+> Ese script crea todo lo que describe este documento (las 8 rutas, la
+> cabecera secreta, la API key, el plan de uso y el despliegue al stage
+> `prod`) de forma idempotente, y al terminar imprime la URL y la clave.
+> Este documento queda como referencia de **qué** se configura y **por qué**.
+
 El API Gateway es la **única puerta de entrada** al backend. La protección
 tiene dos capas:
 
