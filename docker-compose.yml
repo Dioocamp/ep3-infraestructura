@@ -57,7 +57,7 @@ services:
       DB_URL: jdbc:mysql://mysql:3306/clinica_personal?createDatabaseIfNotExist=true&serverTimezone=America/Santiago&useSSL=false&allowPublicKeyRetrieval=true
       DB_USERNAME: root
       DB_PASSWORD: clinica2026
-      GATEWAY_SECRET: cambiar-por-un-secreto-largo
+      GATEWAY_SECRET: ClinicaEP3-Gw-7f3a9c2e6b1d-2026
     ports:
       - "8081:8081"
     networks:
@@ -86,9 +86,9 @@ services:
       DB_USERNAME: root
       DB_PASSWORD: clinica2026
       MS_PERSONAL_MEDICO_URL: http://ms-personal-medico:8081
-      GATEWAY_SECRET: cambiar-por-un-secreto-largo
+      GATEWAY_SECRET: ClinicaEP3-Gw-7f3a9c2e6b1d-2026
       NOTIFICACIONES_ENABLED: "true"
-      NOTIFICACIONES_QUEUE_URL: https://sqs.us-east-1.amazonaws.com/ACCOUNT_ID/clinica-citas-queue
+      NOTIFICACIONES_QUEUE_URL: https://sqs.us-east-1.amazonaws.com/612882175899/clinica-citas-queue
       AWS_REGION: us-east-1
       # AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY / AWS_SESSION_TOKEN se
       # agregan con scripts/actualizar-credenciales-aws.sh tras cada deploy.
