@@ -111,11 +111,14 @@ es otro, hay que cambiarlo:
 4. Presiona **Ctrl+H** (buscar y reemplazar). Arriba escribe `dioocamp/` y
    abajo `TUUSUARIO/`. Clic en el ícono de **reemplazar todo** (las dos
    flechitas). Guarda con **Ctrl+S**.
-5. Guárdalo en GitHub: abre PowerShell (tecla Windows → `powershell`) y pega:
+5. Guárdalo en GitHub: abre PowerShell (tecla Windows → `powershell`) y pega
+   esta línea **completa, tal cual** (es una sola línea):
    ```
-   cd C:\Users\dinko\OneDrive\Documentos\Claude-Code\EP2-Microservicios\ep3-infraestructura
-   git add . ; git commit -m "config: usuario de Docker Hub" ; git push
+   cd C:\Users\dinko\OneDrive\Documentos\Claude-Code\EP2-Microservicios\ep3-infraestructura ; git add . ; git commit -m "config: usuario de Docker Hub" ; git push
    ```
+   > ⚠ En PowerShell, cada comando va en su propia línea **o** separados por
+   > `;`. Si pegas `cd ruta` y `git add .` juntos sin el `;`, dará el error
+   > *"A positional parameter cannot be found that accepts argument 'git'"*.
 
 ---
 
@@ -436,10 +439,9 @@ ese caso hay que crear un rol IAM con permisos de Lambda + SQS.
    ⚠ Debe quedar **idéntico en los dos lugares** donde aparece.
 
 4. **Ctrl+S** para guardar.
-5. Súbelo a GitHub. En PowerShell:
+5. Súbelo a GitHub. En PowerShell, pega esta línea completa:
    ```
-   cd C:\Users\dinko\OneDrive\Documentos\Claude-Code\EP2-Microservicios\ep3-infraestructura
-   git add . ; git commit -m "config: cola SQS y secreto del gateway" ; git push
+   cd C:\Users\dinko\OneDrive\Documentos\Claude-Code\EP2-Microservicios\ep3-infraestructura ; git add . ; git commit -m "config: cola SQS y secreto del gateway" ; git push
    ```
 
 ### A7.2 Desplegar
