@@ -98,6 +98,15 @@ sleep 2
 # ----------------------------------------------------------------------
 # 2. Funcion que crea un par de rutas (/api/X y /api/X/{proxy+})
 # ----------------------------------------------------------------------
+# Los parametros se pasan en JSON (no en la sintaxis abreviada key=value)
+# porque el valor estatico de una cabecera debe conservar sus comillas
+# simples, y el parser abreviado del CLI se las come.
+SECRETO_LITERAL="'${GATEWAY_SECRET}'"
+PARAMS_SIMPLE=$(printf '{"integration.request.header.x-gateway-secret":"%s"}' \
+    "${SECRETO_LITERAL}")
+PARAMS_PROXY=$(printf '{"integration.request.path.proxy":"method.request.path.proxy","integration.request.header.x-gateway-secret":"%s"}' \
+    "${SECRETO_LITERAL}")
+
 crear_ruta() {
   local NOMBRE="$1"      # citas, pacientes, medicos, especialidades
   local PUERTO="$2"      # 8081 u 8082
@@ -121,7 +130,7 @@ crear_ruta() {
       --rest-api-id "${API_ID}" --resource-id "${RES_ID}" \
       --http-method ANY --type HTTP_PROXY --integration-http-method ANY \
       --uri "http://${MANAGER_IP}:${PUERTO}/api/${NOMBRE}" \
-      --request-parameters "integration.request.header.x-gateway-secret='${GATEWAY_SECRET}'" \
+      --request-parameters "${PARAMS_SIMPLE}" \
       --region "${REGION}" >/dev/null
   sleep 2
 
@@ -135,7 +144,7 @@ crear_ruta() {
   aws apigateway put-method \
       --rest-api-id "${API_ID}" --resource-id "${PROXY_ID}" \
       --http-method ANY --authorization-type NONE --api-key-required \
-      --request-parameters "method.request.path.proxy=true" \
+      --request-parameters '{"method.request.path.proxy":true}' \
       --region "${REGION}" >/dev/null
   sleep 2
 
@@ -143,7 +152,7 @@ crear_ruta() {
       --rest-api-id "${API_ID}" --resource-id "${PROXY_ID}" \
       --http-method ANY --type HTTP_PROXY --integration-http-method ANY \
       --uri "http://${MANAGER_IP}:${PUERTO}/api/${NOMBRE}/{proxy}" \
-      --request-parameters "integration.request.path.proxy=method.request.path.proxy,integration.request.header.x-gateway-secret='${GATEWAY_SECRET}'" \
+      --request-parameters "${PARAMS_PROXY}" \
       --region "${REGION}" >/dev/null
   sleep 2
 }
