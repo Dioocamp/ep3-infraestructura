@@ -11,6 +11,10 @@
 #
 #  Requiere credenciales AWS en el entorno (en CI las inyecta
 #  aws-actions/configure-aws-credentials desde los secrets).
+#
+#  El rol de ejecucion de la Lambda se toma de la variable de entorno
+#  LAMBDA_ROLE_NAME (por defecto 'clinica-lambda-role'). Ese rol se crea
+#  una sola vez a mano en IAM (ver docs/runbook-grabacion.md, seccion A6).
 # ======================================================================
 set -euo pipefail
 
@@ -19,10 +23,10 @@ QUEUE_NAME="clinica-citas-queue"
 FUNCTION_NAME="clinica-notificador"
 LAMBDA_DIR="lambda/notificador"
 ZIP_FILE="/tmp/notificador.zip"
+ROLE_NAME="${LAMBDA_ROLE_NAME:-clinica-lambda-role}"
 
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-# LabRole: rol preexistente en AWS Academy con permisos de laboratorio.
-ROLE_ARN="arn:aws:iam::${ACCOUNT_ID}:role/LabRole"
+ROLE_ARN="arn:aws:iam::${ACCOUNT_ID}:role/${ROLE_NAME}"
 
 echo ">> Cuenta AWS: ${ACCOUNT_ID} (region ${REGION})"
 

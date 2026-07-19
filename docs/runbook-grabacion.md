@@ -10,11 +10,11 @@ hacer clic, qué escribir, qué debes ver y qué hacer si falla.**
 | Paso | Estado | Detalle |
 |---|---|---|
 | **A1** Subir los 3 repos a GitHub | ✅ **HECHO** | ms-personal-medico, ms-citas y ep3-infraestructura publicados con ramas y tags |
-| **A2** Cuenta y token de Docker Hub | ⬜ pendiente | Es tu próximo paso |
-| **A3** Secrets en GitHub | ⬜ pendiente | Por eso el pipeline está en rojo (ver abajo) |
-| **A4** Crear las 2 máquinas EC2 | ⬜ pendiente | |
+| **A2** Cuenta y token de Docker Hub | ✅ **HECHO** | usuario `azath0t` |
+| **A3** Secrets Docker Hub en GitHub | ✅ **HECHO** | verificado por API: pipeline pasó a verde en "Imagen Docker a Docker Hub" |
+| **A4** Crear las 2 máquinas EC2 | ⬜ pendiente | **Es tu próximo paso.** Usarás cuenta personal AWS (no Academy) |
 | **A5** Formar el clúster Swarm | ⬜ pendiente | |
-| **A6** Crear cola SQS + Lambda | ⬜ pendiente | |
+| **A6** Crear usuario IAM + rol + cola SQS + Lambda | ⬜ pendiente | |
 | **A7** Desplegar el stack | ⬜ pendiente | |
 | **A8** Configurar API Gateway | ⬜ pendiente | |
 | **A9** Verificación total | ⬜ pendiente | |
@@ -29,32 +29,44 @@ hacer clic, qué escribir, qué debes ver y qué hacer si falla.**
 - ✅ Los 20 tests pasan y **en GitHub el job "Build y pruebas (Maven)" está
   en VERDE** — o sea, la parte de integración continua ya funciona sola.
 
-**Diagnóstico exacto del pipeline hoy:**
+**Diagnóstico exacto del pipeline hoy (verificado por API):**
 ```
 Build y pruebas (Maven)      -> ✅ success
-Imagen Docker a Docker Hub   -> ❌ failure   ← falta el token de Docker Hub (A2+A3)
-Despliegue en Docker Swarm   -> ⏭️ skipped   ← no corre porque el anterior falló
+Imagen Docker a Docker Hub   -> ✅ success   ← arreglado con A2+A3
+Despliegue en Docker Swarm   -> ❌ failure    ← esperado, aún no existe el servidor (A4)
 ```
-Esto es **normal y esperado**: se arregla solo cuando completes A2 y A3.
 
-**Tiempo que te queda:** ~2 horas de configuración (A2→A9) + 1 hora de
+⚠ **Cambio de plan:** el docente aún no te habilitó AWS Academy (cursos
+marcados como terminados). En vez de esperar, seguimos con una **cuenta
+personal de AWS Free Tier** — funciona igual para todo lo que necesitas y
+sin depender de la inscripción. Si el docente te habilita Academy después,
+no hace falta volver atrás: todo lo de acá sirve igual.
+
+**Tiempo que te queda:** ~2.5 horas de configuración (A4→A9, un poco más
+que con Academy por crear la cuenta y el usuario IAM) + 1 hora de
 preparación y rodaje + 1 hora de edición.
 
 ---
 
-# ⚠ ANTES DE EMPEZAR: cómo funciona AWS Academy
+# ⚠ ANTES DE EMPEZAR: usas una cuenta PERSONAL de AWS (no Academy)
 
-Lee esto una vez, te ahorra horas de confusión:
+Como no tenías acceso al Learner Lab de AWS Academy este semestre, vamos
+por **AWS Free Tier con tu propia cuenta**. Lee esto una vez:
 
-- AWS Academy te da un laboratorio que **se apaga solo**. Cada vez que
-  trabajes debes entrar y presionar **Start Lab** y esperar el punto 🟢.
-- **Las credenciales cambian en cada sesión.** Por eso hay pasos que
-  tendrás que repetir cada día que trabajes (están marcados con 🔄).
-- **Si detienes las máquinas EC2, al encenderlas cambia su IP pública.** Si
-  eso pasa hay que actualizar 2 lugares (te explico dónde en la Fase B).
+- **No hay "Start Lab" ni sesiones que se apagan.** Entras directo a
+  console.aws.amazon.com con tu usuario y contraseña, como cualquier sitio.
+- **Las credenciales NO expiran.** Las configuras una sola vez (paso A6) y
+  quedan funcionando para siempre (a menos que tú las borres).
+- **Si detienes las máquinas EC2, al encenderlas SÍ cambia su IP pública**
+  (esto es igual que en Academy). Si pasa, hay que actualizar 2 lugares
+  (te explico dónde en la Fase B).
+- **Hay que cuidar el gasto.** Free Tier cubre gratis 12 meses de EC2
+  (750 horas/mes de instancias t2.micro/t3.micro), Lambda, SQS y API
+  Gateway con generosos límites gratuitos. Para no arriesgar nada:
+  usaremos **t3.micro** en vez de t3.small, y **al terminar de grabar el
+  video, apaga o elimina las instancias EC2** (Fase C, último paso).
 - **Consejo clave:** intenta hacer A4→A9 en una sola tarde, y graba el
-  video al día siguiente o el mismo día. Mientras menos sesiones, menos
-  cosas se desconfiguran.
+  video al día siguiente o el mismo día.
 
 ---
 
@@ -161,10 +173,12 @@ ep3-infraestructura)
 | `EC2_HOST` | IP pública del manager | los 3 repos |
 | `EC2_USER` | escribe: `ec2-user` | los 3 repos |
 | `EC2_SSH_KEY` | todo el contenido del archivo .pem | los 3 repos |
-| `AWS_ACCESS_KEY_ID` | de AWS Details 🔄 | solo ep3-infraestructura |
-| `AWS_SECRET_ACCESS_KEY` | de AWS Details 🔄 | solo ep3-infraestructura |
-| `AWS_SESSION_TOKEN` | de AWS Details 🔄 | solo ep3-infraestructura |
+| `AWS_ACCESS_KEY_ID` | el access key del usuario `clinica-admin` (A6.2) | solo ep3-infraestructura |
+| `AWS_SECRET_ACCESS_KEY` | el secret key del mismo usuario (A6.2) | solo ep3-infraestructura |
 | `AWS_REGION` | escribe: `us-east-1` | solo ep3-infraestructura |
+
+> Con cuenta personal NO existe `AWS_SESSION_TOKEN` — ese secret solo
+> aplicaba a AWS Academy. No lo agregues.
 
 ---
 
@@ -174,25 +188,50 @@ ep3-infraestructura)
 crear dos: uno será el "jefe" (manager) y otro el "trabajador" (worker).
 Entre los dos formarán el clúster que exige la evaluación.
 
-### A4.1 Entrar a AWS
+### A4.0 Crear tu cuenta personal de AWS (si aún no la tienes)
 
-1. Entra a AWS Academy (el sitio del curso) → tu curso → módulo
-   **Learner Lab** → botón **Start Lab**.
-2. Espera a que el círculo junto a "AWS" se ponga **🟢 verde** (1-2 min).
-3. Clic en la palabra **AWS** (arriba a la izquierda) → se abre la consola
-   de AWS en una pestaña nueva.
+1. Chrome → `aws.amazon.com` → botón **Create an AWS Account**
+   (arriba a la derecha).
+2. Ingresa tu correo, un nombre de cuenta (ej. `dinko-ep3`) → **Verify email
+   address** → revisa tu correo, copia el código de 6 dígitos y pégalo.
+3. Crea una contraseña para la cuenta raíz (root) → Continue.
+4. **Contact Information:** elige **Personal** → completa nombre, teléfono,
+   dirección (puede ser la tuya real) → acepta el acuerdo → Continue.
+5. **Billing information:** pide una **tarjeta** (débito o crédito) para
+   verificar tu identidad. **No te van a cobrar** mientras te mantengas en
+   Free Tier (que es exactamente lo que vamos a hacer). Complétala y
+   continúa.
+6. **Confirm your identity:** te llega un código por SMS a tu teléfono →
+   ingrésalo.
+7. **Select a plan:** elige **Basic support - Free** → Complete sign up.
+8. Espera el correo de "Welcome to Amazon Web Services" (puede tardar
+   unos minutos) y luego entra con **Sign In to the Console** → inicia
+   sesión como **Root user** con el correo y la contraseña que creaste.
+
+> 🚨 Guarda tu contraseña de root en tu `datos-ep3.txt`. La usarás poco
+> (solo para crear el usuario del siguiente paso), pero es la llave
+> maestra de tu cuenta.
+
+### A4.1 Entrar a AWS (las próximas veces)
+
+1. Chrome → `console.aws.amazon.com`
+2. Inicia sesión con tu correo/contraseña de root (o el usuario IAM que
+   crees en A6, una vez que exista).
 
 ### A4.2 Crear la primera máquina (manager)
 
 1. En la barra de búsqueda de arriba escribe `EC2` → Enter.
-2. En el menú izquierdo: **Instances** → botón naranja
+2. **Verifica la región** arriba a la derecha: debe decir
+   **N. Virginia (us-east-1)** — si dice otra, cámbiala ahí mismo. Todo el
+   resto de la guía asume `us-east-1`.
+3. En el menú izquierdo: **Instances** → botón naranja
    **Launch instances**.
-3. **Name:** escribe `swarm-manager`
-4. **Application and OS Images:** deja seleccionado **Amazon Linux**
-   (debe decir *Amazon Linux 2023 AMI*).
-5. **Instance type:** clic en el desplegable → elige **t3.small**.
-   (Si no aparece o da error de cuota, usa `t2.small`.)
-6. **Key pair (login):** clic en **Create new key pair**:
+4. **Name:** escribe `swarm-manager`
+5. **Application and OS Images:** deja seleccionado **Amazon Linux**
+   (debe decir *Amazon Linux 2023 AMI* y decir "Free tier eligible").
+6. **Instance type:** clic en el desplegable → elige **t3.micro**
+   (marcada "Free tier eligible" — así no se cobra nada).
+7. **Key pair (login):** clic en **Create new key pair**:
    - Key pair name: `clinica-key`
    - Type: **RSA**, Format: **.pem**
    - Clic en **Create key pair** → se descarga `clinica-key.pem`.
@@ -370,42 +409,86 @@ paso **A4.4** (2377, 7946, 4789 con origen el propio security group).
 
 ---
 
-## A6. Crear la cola SQS y la función Lambda (10 min) 🔄
+## A6. Crear tu usuario IAM, el rol de la Lambda, y la cola+función (35 min)
 
-**Qué es y para qué:** la cola SQS es un "buzón de mensajes" y la Lambda es
-un programa que se ejecuta solo cuando llega un mensaje. Cubren IE5, IE10,
-IE11, IE13 y IE14. El script los crea todos automáticamente.
+**Qué es y para qué:** en una cuenta personal no usamos el usuario "root"
+para el día a día (es mala práctica y AWS lo recomienda en pantalla). Vamos
+a crear:
+1. Un **usuario IAM** con permisos amplios, para ti y para el pipeline.
+2. Un **rol IAM** que le da permisos a la función Lambda para ejecutarse.
+3. La cola SQS y la función Lambda (con el script, como antes).
 
-### A6.1 Copiar tus credenciales de AWS al servidor 🔄
+Esto se hace **UNA SOLA VEZ** — no se repite por sesión como en Academy.
 
-*(Este paso lo repetirás cada vez que inicies una nueva sesión de Academy.)*
+### A6.1 Crear el usuario IAM (5 min)
 
-1. En la ventana de AWS Academy (donde está el Start Lab), clic en
-   **AWS Details** (arriba a la derecha) → clic en **Show** junto a
-   *AWS CLI*.
-2. Aparece un bloque de texto que empieza con `[default]`. **Selecciónalo
-   todo y cópialo** (Ctrl+C).
-3. En la ventana ssh del **manager**, escribe:
-   ```
-   mkdir -p ~/.aws
-   nano ~/.aws/credentials
-   ```
-4. Se abre un editor de texto azul dentro de la terminal. **Pega** con
-   **clic derecho** (o Ctrl+Shift+V).
-5. Guardar y salir: presiona **Ctrl+O** → **Enter** → **Ctrl+X**.
+1. En la consola AWS (logueado como root), busca `IAM` en la barra de
+   búsqueda → Enter.
+2. Menú izquierdo: **Users** → botón **Create user**.
+3. User name: `clinica-admin` → **Next**.
+4. **Permissions options:** elige **Attach policies directly**.
+5. En el buscador de políticas escribe `AdministratorAccess` → marca la
+   casilla de esa política → **Next** → **Create user**.
 
-👁️ Para verificar que quedó bien:
+   > Para un proyecto universitario de pocas semanas esto es más simple
+   > que armar permisos mínimos a mano; cuando termines la entrega, puedes
+   > desactivar o borrar este usuario (Fase C, último paso).
+
+### A6.2 Crear el access key para ese usuario (5 min)
+
+1. Clic en el usuario `clinica-admin` que acabas de crear.
+2. Pestaña **Security credentials** → baja hasta **Access keys** →
+   botón **Create access key**.
+3. Use case: elige **Command Line Interface (CLI)** → marca la casilla de
+   confirmación → **Next** → **Create access key**.
+4. 🚨 Aparecen **Access key ID** y **Secret access key**. Clic en
+   **Download .csv file** (guárdalo) y además copia ambos valores a tu
+   `datos-ep3.txt`. El secret **no se vuelve a mostrar nunca**.
+
+### A6.3 Crear el rol IAM para la función Lambda (10 min)
+
+1. Busca `IAM` → menú izquierdo **Roles** → **Create role**.
+2. Trusted entity type: **AWS service**. Use case: busca y elige
+   **Lambda** → **Next**.
+3. En el buscador de políticas, marca estas DOS:
+   - `AWSLambdaBasicExecutionRole` (le permite escribir logs en CloudWatch)
+   - `AmazonSQSFullAccess` (le permite leer/borrar mensajes de la cola)
+4. **Next**. Role name: `clinica-lambda-role` → **Create role**.
+
+### A6.4 Poner tus credenciales en tu PC y en el servidor
+
+**En tu PC** (para probar cosas desde PowerShell más adelante si hace
+falta) — puedes saltarte esto si no tienes AWS CLI instalado localmente,
+no es obligatorio.
+
+**En el servidor (manager)** — esto sí es necesario:
+```
+mkdir -p ~/.aws
+nano ~/.aws/credentials
+```
+Se abre un editor azul dentro de la terminal. Escribe (con tus valores
+reales de A6.2):
+```
+[default]
+aws_access_key_id = TU_ACCESS_KEY_ID
+aws_secret_access_key = TU_SECRET_ACCESS_KEY
+```
+Guardar y salir: **Ctrl+O** → **Enter** → **Ctrl+X**.
+
+👁️ Verifica:
 ```
 aws sts get-caller-identity
 ```
-Debe devolver un JSON con tu número de cuenta.
-🚑 Si dice *ExpiredToken*: copiaste credenciales viejas → repite desde el
-punto 1 con el lab iniciado.
+Debe devolver un JSON con tu número de cuenta y
+`"Arn": ".../user/clinica-admin"`.
+🚑 Si dice *InvalidClientTokenId*: revisa que copiaste bien el access key
+(sin espacios ni saltos de línea extra).
 
-### A6.2 Ejecutar el script que crea todo
+### A6.5 Ejecutar el script que crea la cola y la función
 
 ```
 cd ~/ep3-infraestructura
+git pull
 bash infra/provision.sh
 ```
 
@@ -416,8 +499,10 @@ QUEUE_URL=https://sqs.us-east-1.amazonaws.com/123456789012/clinica-citas-queue
 ```
 📝 **COPIA esa URL completa** a tu `datos-ep3.txt`. La necesitas en A7.
 
-🚑 Si dice `role/LabRole does not exist`: estás fuera de AWS Academy; en
-ese caso hay que crear un rol IAM con permisos de Lambda + SQS.
+🚑 Si dice `role/clinica-lambda-role does not exist`: repite A6.3, el
+nombre debe ser exactamente `clinica-lambda-role`.
+🚑 Si dice `AccessDenied`: el usuario `clinica-admin` no quedó con
+`AdministratorAccess` → revisa A6.1.
 
 ---
 
@@ -593,37 +678,31 @@ y puedes grabar el video.**
 
 ---
 
-# FASE B — Pre-vuelo el día de grabar (30 min antes)
+# FASE B — Pre-vuelo el día de grabar (15 min antes)
 
-Haz esto **siempre**, aunque ayer funcionara todo. Marcados 🔄 los que
-cambian por sesión.
+Con cuenta personal es más corto que con Academy: no hay sesión que
+iniciar ni credenciales que rotar. Aun así, revisa esto siempre:
 
-1. 🔄 **AWS Academy → Start Lab** → espera el 🟢.
-2. 🔄 **¿Cambió la IP del manager?** Consola EC2 → Instances →
-   swarm-manager → Public IPv4.
+1. **¿Apagaste las EC2 después de la última vez?** Si sí, préndelas:
+   consola EC2 → Instances → marca `swarm-manager` y `swarm-worker` →
+   botón **Instance state → Start instance**. Espera ~1 minuto.
+2. **¿Cambió la IP del manager?** (cambia SIEMPRE que apagas y prendes la
+   instancia). Consola EC2 → Instances → swarm-manager → Public IPv4.
    - **Si cambió**, actualiza en 2 lugares:
      a) Secret `EC2_HOST` en los 3 repos de GitHub.
      b) Las 8 integraciones del API Gateway (`infra/api-gateway.md` §2) y
         después **Deploy API**.
-3. 🔄 **Secrets AWS frescos** en el repo ep3-infraestructura
-   (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN` desde
-   *AWS Details*).
-4. 🔄 **Credenciales en el manager:** ssh → `nano ~/.aws/credentials` →
-   pegar las nuevas → Ctrl+O, Enter, Ctrl+X → y luego:
-   ```
-   cd ~/ep3-infraestructura && bash scripts/actualizar-credenciales-aws.sh
-   ```
-5. **Clúster sano:** `docker node ls` (2 Ready) y `docker service ls`
-   (1/1 y 2/2). Si algo está en 0/2 espera 2 minutos.
-6. **Datos de ejemplo presentes:**
+3. **Clúster sano:** conéctate por ssh y ejecuta `docker node ls` (2 Ready)
+   y `docker service ls` (1/1 y 2/2). Si algo está en 0/2 espera 2 minutos.
+4. **Datos de ejemplo presentes:**
    `curl.exe -H "x-api-key: $env:KEY" "$env:GW/api/medicos"` → debe listar a
    Carla Soto. Si viene vacío, vuelve a A9.2.
-7. **Ensayo en seco:** ejecuta todos los comandos de la grabación una vez
+5. **Ensayo en seco:** ejecuta todos los comandos de la grabación una vez
    SIN grabar. Si todos responden bien, recién ahí grabas.
-8. **Prepara las 5 ventanas** (detalle completo en `instructivo-video.md`,
+6. **Prepara las 5 ventanas** (detalle completo en `instructivo-video.md`,
    Parte 1).
-9. **Docker Desktop** abierto en tu PC (ballena quieta en la barra).
-10. **Audífonos con micrófono** puestos y pieza en silencio.
+7. **Docker Desktop** abierto en tu PC (ballena quieta en la barra).
+8. **Audífonos con micrófono** puestos y pieza en silencio.
 
 ---
 
@@ -658,14 +737,14 @@ Resumen de las 10 escenas (≈7 minutos):
 | `No such image` en `service ps` | La imagen no está en Docker Hub | Revisa que el pipeline (A4.8) esté verde |
 | Pipeline rojo en "Imagen Docker" | Token de Docker Hub malo | Regenera el token y actualiza el secret |
 | Pipeline rojo en "Despliegue" | Clave SSH mal copiada o clúster caído | Revisa `EC2_SSH_KEY` (debe incluir BEGIN y END) |
-| Pipeline rojo en "provision-cloud" | Credenciales de Academy vencidas | Actualiza los 3 secrets AWS y Re-run |
+| Pipeline rojo en "provision-cloud" | Secrets `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` mal copiados | Revisa que no tengan espacios extra y Re-run |
 | `500`/`502` desde el Gateway | La IP del manager cambió | Corrige integraciones + **Deploy API** |
 | `403` aun usando la API key | Falta Deploy API o la key no está en el plan | Deploy API; revisa el usage plan |
 | POST da 201 pero la Lambda no loguea | Credenciales del microservicio vencidas | `bash scripts/actualizar-credenciales-aws.sh` |
 | `curl` local no responde | El contenedor aún está arrancando | Espera 20 s; `docker logs <nombre>` |
 | El worker no se une al clúster | Puertos 2377/7946/4789 cerrados | Revisa A4.4 (origen = el propio SG) |
 | `UNPROTECTED PRIVATE KEY FILE` | Permisos del .pem en Windows | Los dos comandos `icacls` de A4.6 |
-| `ExpiredToken` en AWS CLI | Sesión de Academy vencida | Start Lab y copiar credenciales nuevas |
+| `InvalidClientTokenId` en AWS CLI | Access key mal copiado en `~/.aws/credentials` | Revisa A6.4, sin espacios ni saltos de línea |
 
 ---
 
@@ -679,3 +758,21 @@ Resumen de las 10 escenas (≈7 minutos):
   - `github.com/Dioocamp/ms-personal-medico`
   - `github.com/Dioocamp/ms-citas`
   - `github.com/Dioocamp/ep3-infraestructura`
+
+---
+
+# 💰 DESPUÉS DE ENTREGAR: apaga los recursos de tu cuenta personal
+
+Como es tu cuenta (no un lab desechable de Academy), conviene apagar lo
+que ya no necesitas para no arriesgar cargos fuera del Free Tier:
+
+1. Consola EC2 → Instances → selecciona `swarm-manager` y `swarm-worker` →
+   **Instance state → Terminate instance** (las borra por completo; el
+   Free Tier de igual forma cubre 750 h/mes si prefieres solo *Stop*
+   mientras aún estés con el ramo).
+2. Si terminaste TODO (nota entregada, sin necesidad de volver a grabar):
+   consola SQS → borra `clinica-citas-queue`; consola Lambda → borra
+   `clinica-notificador`; consola API Gateway → borra `clinica-gateway`.
+3. Si prefieres no borrar nada por si necesitas regrabar: con instancias en
+   **Stop** (no Terminate) no se cobra cómputo, solo el disco (EBS), que
+   son centavos y normalmente cubiertos por Free Tier igual.
