@@ -23,6 +23,13 @@ services:
   # ------------------------------------------------------------------
   mysql:
     image: mysql:8.4
+    # Ajustes de memoria para instancias pequenas (t3.micro, 1 GB de RAM):
+    # sin esto MySQL reserva ~400 MB solo para el buffer pool.
+    command: >
+      --innodb-buffer-pool-size=64M
+      --innodb-log-buffer-size=8M
+      --performance-schema=OFF
+      --max-connections=50
     environment:
       MYSQL_ROOT_PASSWORD: clinica2026
     volumes:
@@ -46,7 +53,7 @@ services:
       resources:
         limits:
           cpus: "1.0"
-          memory: 768M
+          memory: 420M
 
   # ------------------------------------------------------------------
   # Microservicio de personal medico (especialidades y medicos).
@@ -63,7 +70,10 @@ services:
     networks:
       - clinica-net
     deploy:
-      replicas: 2
+      # 1 replica por defecto: en instancias t3.micro (1 GB) no caben mas.
+      # Para la demo de escalabilidad (IE8) se sube en vivo con:
+      #   docker service scale clinica_ms-citas=4
+      replicas: 1
       update_config:
         parallelism: 1
         order: start-first
@@ -73,7 +83,7 @@ services:
       resources:
         limits:
           cpus: "0.50"
-          memory: 512M
+          memory: 360M
 
   # ------------------------------------------------------------------
   # Microservicio de pacientes y citas. Publica eventos CITA_CREADA en
@@ -97,7 +107,10 @@ services:
     networks:
       - clinica-net
     deploy:
-      replicas: 2
+      # 1 replica por defecto: en instancias t3.micro (1 GB) no caben mas.
+      # Para la demo de escalabilidad (IE8) se sube en vivo con:
+      #   docker service scale clinica_ms-citas=4
+      replicas: 1
       update_config:
         parallelism: 1
         order: start-first
@@ -107,7 +120,7 @@ services:
       resources:
         limits:
           cpus: "0.50"
-          memory: 512M
+          memory: 360M
 
 # Red overlay: comunica los contenedores entre nodos del cluster
 # (los servicios se resuelven por nombre DNS: mysql, ms-personal-medico...).
