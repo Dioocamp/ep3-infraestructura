@@ -7,7 +7,7 @@
 #  Docker Hub y las publica el pipeline CI/CD de cada microservicio.
 #
 #  Valores a ajustar UNA VEZ antes del primer despliegue:
-#   - usuario de Docker Hub en las imagenes (dioocamp)
+#   - usuario de Docker Hub en las imagenes (azath0t)
 #   - NOTIFICACIONES_QUEUE_URL con el ACCOUNT_ID real (lo imprime infra/provision.sh)
 #   - GATEWAY_SECRET (el mismo valor configurado en el API Gateway)
 #  Las credenciales de AWS NO van aqui: se inyectan con
@@ -52,7 +52,7 @@ services:
   # Microservicio de personal medico (especialidades y medicos).
   # ------------------------------------------------------------------
   ms-personal-medico:
-    image: dioocamp/ms-personal-medico:latest
+    image: azath0t/ms-personal-medico:latest
     environment:
       DB_URL: jdbc:mysql://mysql:3306/clinica_personal?createDatabaseIfNotExist=true&serverTimezone=America/Santiago&useSSL=false&allowPublicKeyRetrieval=true
       DB_USERNAME: root
@@ -80,7 +80,7 @@ services:
   # la cola SQS; la Lambda 'clinica-notificador' los consume.
   # ------------------------------------------------------------------
   ms-citas:
-    image: dioocamp/ms-citas:latest
+    image: azath0t/ms-citas:latest
     environment:
       DB_URL: jdbc:mysql://mysql:3306/clinica_citas?createDatabaseIfNotExist=true&serverTimezone=America/Santiago&useSSL=false&allowPublicKeyRetrieval=true
       DB_USERNAME: root
